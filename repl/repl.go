@@ -3,6 +3,7 @@ package repl
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -66,7 +67,9 @@ func (r *Repl) Start(step ParseStep) {
 
 			ast, err := p.Parse()
 			if err == nil {
-				_, err := os.Stderr.WriteString(fmt.Sprintf("%v\n", ast))
+				enc := json.NewEncoder(os.Stdout)
+				enc.SetIndent("  ", "  ")
+				err := enc.Encode(ast)
 				if err != nil {
 					panic(err)
 				}
