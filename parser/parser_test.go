@@ -14,95 +14,95 @@ func TestParser(t *testing.T) {
 		{
 			"{{a}}",
 			AST{
-				&Wildcard{value: &Literal{value: "a"}},
+				&Wildcard{Expression: &Literal{V: "a"}},
 			},
 		},
 		{
 			"{{a.a}}",
 			AST{
-				&Wildcard{value: &DotExpression{
-					Target: &Literal{value: "a"},
-					Key:    &Literal{value: "a"},
+				&Wildcard{Expression: &DotExpression{
+					Target: &Literal{V: "a"},
+					Key:    &Literal{V: "a"},
 				}},
 			},
 		},
 		{
 			"{{a.{{a}}}}",
 			AST{
-				&Wildcard{value: &DotExpression{
-					Target: &Literal{value: "a"},
-					Key:    &Wildcard{value: &Literal{value: "a"}},
+				&Wildcard{Expression: &DotExpression{
+					Target: &Literal{V: "a"},
+					Key:    &Wildcard{Expression: &Literal{V: "a"}},
 				}},
 			},
 		},
 		{
 			"{{a.{{a.{{b}}}}}}",
 			AST{
-				&Wildcard{value: &DotExpression{
-					Target: &Literal{value: "a"},
-					Key: &Wildcard{value: &DotExpression{
-						Target: &Literal{value: "a"},
-						Key:    &Wildcard{value: &Literal{value: "b"}},
+				&Wildcard{Expression: &DotExpression{
+					Target: &Literal{V: "a"},
+					Key: &Wildcard{Expression: &DotExpression{
+						Target: &Literal{V: "a"},
+						Key:    &Wildcard{Expression: &Literal{V: "b"}},
 					}},
 				}},
 			},
 		},
 		{
-			"{{a[a]}}",
+			`{{a[""a"]}}`,
 			AST{
-				&Wildcard{value: &IndexExpression{
-					Target: &Literal{value: "a"},
-					Key:    &Literal{value: "a"},
+				&Wildcard{Expression: &IndexExpression{
+					Target: &Literal{V: "a"},
+					Key:    &Literal{V: "\"a"},
 				}},
 			},
 		},
 		{
 			"{{a[{{a}}]}}",
 			AST{
-				&Wildcard{value: &IndexExpression{
-					Target: &Literal{value: "a"},
-					Key:    &Wildcard{value: &Literal{value: "a"}},
+				&Wildcard{Expression: &IndexExpression{
+					Target: &Literal{V: "a"},
+					Key:    &Wildcard{Expression: &Literal{V: "a"}},
 				}},
 			},
 		},
 		{
 			`{{"{{a}}"}}`,
 			AST{
-				&Wildcard{value: &Literal{value: "{{a}}"}},
+				&Wildcard{Expression: &Literal{V: "{{a}}"}},
 			},
 		},
 		{
 			`{{ "{{a}}" }}`,
 			AST{
-				&Wildcard{value: &Literal{value: "{{a}}"}},
+				&Wildcard{Expression: &Literal{V: "{{a}}"}},
 			},
 		},
 		{
 			`{{ "{{a}}" ?? a }}`,
 			AST{
-				&Wildcard{value: &NullCoalesceExpression{
-					Primary:  &Literal{value: "{{a}}"},
-					Fallback: &Literal{value: "a"},
+				&Wildcard{Expression: &NullCoalesceExpression{
+					Primary:  &Literal{V: "{{a}}"},
+					Fallback: &Literal{V: "a"},
 				}},
 			},
 		},
 		{
 			`{{ "{{a}}" ?? a | toUpper }}`,
 			AST{
-				&Wildcard{value: &FunctionExpression{Argument: &NullCoalesceExpression{
-					Primary:  &Literal{value: "{{a}}"},
-					Fallback: &Literal{value: "a"},
-				}, Name: &Literal{value: "toUpper"}}},
+				&Wildcard{Expression: &FunctionExpression{Argument: &NullCoalesceExpression{
+					Primary:  &Literal{V: "{{a}}"},
+					Fallback: &Literal{V: "a"},
+				}, Name: &Literal{V: "toUpper"}}},
 			},
 		},
 		{
 			`{{ "{{a}}" ?? (a | toUpper) }}`,
 			AST{
-				&Wildcard{value: &NullCoalesceExpression{
-					Primary: &Literal{value: "{{a}}"},
+				&Wildcard{Expression: &NullCoalesceExpression{
+					Primary: &Literal{V: "{{a}}"},
 					Fallback: &FunctionExpression{
-						Argument: &Literal{value: "a"},
-						Name:     &Literal{value: "toUpper"},
+						Argument: &Literal{V: "a"},
+						Name:     &Literal{V: "toUpper"},
 					},
 				}},
 			},
@@ -110,11 +110,11 @@ func TestParser(t *testing.T) {
 		{
 			`{{ a | toUpper ?? "{{a}}" }}`,
 			AST{
-				&Wildcard{value: &FunctionExpression{
-					Argument: &Literal{value: "a"},
+				&Wildcard{Expression: &FunctionExpression{
+					Argument: &Literal{V: "a"},
 					Name: &NullCoalesceExpression{
 						Primary:  &Literal{"toUpper"},
-						Fallback: &Literal{value: "{{a}}"},
+						Fallback: &Literal{V: "{{a}}"},
 					},
 				}},
 			},
@@ -122,11 +122,11 @@ func TestParser(t *testing.T) {
 		{
 			`{{ a | toUpper ?? {{a}} }}`,
 			AST{
-				&Wildcard{value: &FunctionExpression{
-					Argument: &Literal{value: "a"},
+				&Wildcard{Expression: &FunctionExpression{
+					Argument: &Literal{V: "a"},
 					Name: &NullCoalesceExpression{
 						Primary:  &Literal{"toUpper"},
-						Fallback: &Wildcard{value: &Literal{value: "a"}},
+						Fallback: &Wildcard{Expression: &Literal{V: "a"}},
 					},
 				}},
 			},
@@ -146,16 +146,16 @@ func TestParser(t *testing.T) {
 
 func testAST(expected, actual *AST, t *testing.T) {
 	t.Helper()
-	if expected.root == nil && actual.root != nil {
+	if expected.Root == nil && actual.Root != nil {
 		t.Errorf("expected nil ast wildcard")
 		return
-	} else if expected.root != nil && actual.root == nil {
+	} else if expected.Root != nil && actual.Root == nil {
 		t.Error("expected non-nil ast wildcard")
 		return
-	} else if expected.root == nil && actual.root == nil {
+	} else if expected.Root == nil && actual.Root == nil {
 		return
 	}
-	testExpr(expected.root, actual.root, t)
+	testExpr(expected.Root, actual.Root, t)
 }
 
 func testExpr(expected, actual Expression, t *testing.T) {
@@ -185,6 +185,6 @@ func testExpr(expected, actual Expression, t *testing.T) {
 
 	switch v := expected.(type) {
 	case *Wildcard:
-		testExpr(v.value, actual.(*Wildcard).value, t)
+		testExpr(v.Expression, actual.(*Wildcard).Expression, t)
 	}
 }

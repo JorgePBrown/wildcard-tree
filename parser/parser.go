@@ -19,7 +19,7 @@ func New(t *tokenizer.Tokenizer) *Parser {
 }
 
 type AST struct {
-	root *Wildcard
+	Root *Wildcard
 }
 
 type ExpressionType string
@@ -47,10 +47,6 @@ var opMap = map[tokenizer.TokenType]OperatorPriority{
 	tokenizer.LPAREN:        PAREN,
 }
 
-func (a AST) String() string {
-	return a.root.Literal()
-}
-
 func (p *Parser) Parse() (AST, error) {
 	ast := AST{}
 
@@ -62,7 +58,7 @@ func (p *Parser) Parse() (AST, error) {
 		if err != nil {
 			return ast, err
 		}
-		ast.root = wc
+		ast.Root = wc
 		return ast, nil
 	}
 
@@ -73,7 +69,7 @@ func (p *Parser) parseExpression(prio OperatorPriority) (Expression, error) {
 	var leftExpr Expression
 	switch p.currentToken.T {
 	case tokenizer.TEXT:
-		leftExpr = &Literal{value: p.currentToken.Literal}
+		leftExpr = &Literal{V: p.currentToken.Literal}
 		p.read()
 	case tokenizer.WILDCARD_OPEN:
 		p.read()

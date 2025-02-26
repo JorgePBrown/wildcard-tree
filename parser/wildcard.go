@@ -9,18 +9,18 @@ import (
 const WILDCARD ExpressionType = "WILDCARD"
 
 type Wildcard struct {
-	value Expression
+	Expression Expression
 }
 
 func (w *Wildcard) Value() string {
-	return w.value.Value()
+	return w.Expression.Value()
 }
 func (w *Wildcard) Type() ExpressionType {
 	return WILDCARD
 }
 
 func (w *Wildcard) Literal() string {
-	return fmt.Sprintf("{{%s}}", w.value.Literal())
+	return fmt.Sprintf("{{%s}}", w.Expression.Literal())
 }
 
 func (p *Parser) parseWildcard() (*Wildcard, error) {
@@ -32,6 +32,6 @@ func (p *Parser) parseWildcard() (*Wildcard, error) {
 		return nil, newSyntaxError("}}", p.currentToken.Literal)
 	}
 	return &Wildcard{
-		value: expr,
+		Expression: expr,
 	}, nil
 }
